@@ -78,6 +78,10 @@ uint64_t KingMovesBB(struct Game* g, uint8_t square) {
     return kingMovesBySquareBB[square] & ~(g->pieces_bb[iWHITE] & (1ULL << square) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK]);
 }
 
+uint64_t KingAttacksBB(struct Game* g, uint8_t square) {
+	return kingMovesBySquareBB[square];
+}
+
 struct MoveList KingMovesList(struct Game* g) {
     struct MoveList king_moves_list;
     king_moves_list.num_moves = 0;
@@ -121,6 +125,10 @@ struct MoveList KingMovesList(struct Game* g) {
 
 uint64_t KnightMovesBB(struct Game* g, uint8_t square) {
     return knightMovesBySquareBB[square] & ~(g->pieces_bb[iWHITE] & (1ULL << square) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK]);
+}
+
+uint64_t KnightAttacksBB(struct Game* g, uint8_t square) {
+	return knightMovesBySquareBB[square];
 }
 
 struct MoveList KnightMovesList(struct Game* g) {
@@ -181,6 +189,23 @@ uint64_t PawnMovesBB(struct Game* g, uint8_t square) {
 
     return pawn_moves;
 }
+
+uint64_t PawnAttacksBB(struct Game* g, uint8_t square) {
+	uint64_t attacks_bb = 0ULL;
+	if (g->pieces_bb[iWHITE] & (1ULL << square)) {
+		if (square % 8 > 0)
+			attacks_bb |= 1ULL << (square + 7);
+		if (square % 8 < 7)
+			attacks_bb |= 1ULL << (square + 9);
+	} else {
+		if (square % 8 > 0)
+			attacks_bb |= 1ULL <<  (square - 9);
+		if (square % 8 < 7)
+			attacks_bb |= 1ULL << (square - 7);
+	}
+
+	return attacks_bb;
+}	
 
 struct MoveList PawnMovesList(struct Game* g) {
     struct MoveList pawn_moves;
@@ -268,6 +293,29 @@ uint64_t BishopMovesBB(struct Game* g, uint8_t square) {
     return bishop_moves & ~(g->pieces_bb[iWHITE] & (1ULL << square) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK]);
 }
 
+uint64_t BishopAttacksBB(struct Game* g, uint8_t square) {
+	uint64_t bishop_attacks = 0ULL;
+	uint64_t occupied = (g->pieces_bb[iWHITE] | g->pieces_bb[iBLACK]) ^ (g->pieces_bb[iKING] & ((g->pieces_bb[iWHITE] & (1ULL << square)) ? g->pieces_bb[iBLACK] : g->pieces_bb[iWHITE]));
+
+	uint64_t intersection = slidingPiecesMovesBySquareBB[square][DIRUPRIGHT] & occupied;
+	int first_square = __builtin_ffsll(intersection) - 1;
+	bishop_attacks |= slidingPiecesMovesBySquareBB[square][DIRUPRIGHT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRUPRIGHT] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRUPLEFT] & occupied;
+	first_square = __builtin_ffsll(intersection) - 1;
+	bishop_attacks |= slidingPiecesMovesBySquareBB[square][DIRUPLEFT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRUPLEFT] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRDOWNLEFT] & occupied;
+	first_square = 63 - __builtin_clzll(intersection);
+	bishop_attacks |= slidingPiecesMovesBySquareBB[square][DIRDOWNLEFT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRDOWNLEFT] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRDOWNRIGHT] & occupied;
+	first_square = 63 - __builtin_clzll(intersection);
+	bishop_attacks |= slidingPiecesMovesBySquareBB[square][DIRDOWNRIGHT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRDOWNRIGHT] : 0);
+
+	return bishop_attacks;
+}
+
 struct MoveList BishopMovesList(struct Game* g) {
     struct MoveList bishop_moves_list;
     bishop_moves_list.num_moves = 0;
@@ -310,6 +358,29 @@ uint64_t RookMovesBB(struct Game* g, uint8_t square) {
     return rook_moves & ~(g->pieces_bb[iWHITE] & (1ULL << square) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK]);
 }
 
+uint64_t RookAttacksBB(struct Game* g, uint8_t square) {
+	uint64_t rook_attacks = 0ULL;
+	uint64_t occupied = (g->pieces_bb[iWHITE] | g->pieces_bb[iBLACK]) ^ (g->pieces_bb[iKING] & ((g->pieces_bb[iWHITE] & (1ULL << square)) ? g->pieces_bb[iBLACK] : g->pieces_bb[iWHITE]));
+
+	uint64_t intersection = slidingPiecesMovesBySquareBB[square][DIRUP] & occupied;
+	int first_square = __builtin_ffsll(intersection) - 1;
+	rook_attacks |= slidingPiecesMovesBySquareBB[square][DIRUP] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRUP] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRLEFT] & occupied;
+	first_square = 63 - __builtin_clzll(intersection);
+	rook_attacks |= slidingPiecesMovesBySquareBB[square][DIRLEFT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRLEFT] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRDOWN] & occupied;
+	first_square = 63 - __builtin_clzll(intersection);
+	rook_attacks |= slidingPiecesMovesBySquareBB[square][DIRDOWN] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRDOWN] : 0);
+
+	intersection = slidingPiecesMovesBySquareBB[square][DIRRIGHT] & occupied;
+	first_square = __builtin_ffsll(intersection) - 1;
+	rook_attacks |= slidingPiecesMovesBySquareBB[square][DIRRIGHT] ^ (intersection ? slidingPiecesMovesBySquareBB[first_square][DIRRIGHT] : 0);
+
+	return rook_attacks;
+}
+
 struct MoveList RookMovesList(struct Game* g) {
     struct MoveList rook_moves_list;
     rook_moves_list.num_moves = 0;
@@ -332,6 +403,10 @@ struct MoveList RookMovesList(struct Game* g) {
 
 uint64_t QueenMovesBB(struct Game* g, uint8_t square) {
     return BishopMovesBB(g, square) | RookMovesBB(g, square);
+}
+
+uint64_t QueenAttacksBB(struct Game* g, uint8_t square) {
+    return BishopAttacksBB(g, square) | RookAttacksBB(g, square);
 }
 
 struct MoveList QueenMovesList(struct Game* g) {
@@ -392,17 +467,34 @@ struct MoveList PseudoLegalMoves(struct Game* g) {
     return move_list;
 }
 
-bool InCheck(struct Game* g) {
-    uint8_t king_square = __builtin_ffsll(g->pieces_bb[iKING] & (g->pieces_bb[iSTATE] & gameStateTurnMask ? g->pieces_bb[iBLACK] : g->pieces_bb[iWHITE])) - 1;
-
-    struct MoveList moves = PseudoLegalMoves(g);
-    for (int move = 0; move < moves.num_moves; move++) {
-        if ((moves.moves[move] & moveEndSquareMask) >> 6 == king_square) {
-            return true;
+uint64_t allSquaresAttacking(struct Game* g) {
+    uint64_t pieces = (g->pieces_bb[iSTATE] & gameStateTurnMask) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK];
+    uint64_t squares_attacking = 0ULL;
+    while (pieces) {
+        uint8_t square = __builtin_ffsll(pieces) - 1;
+        if (g->pieces_bb[iKING] & (1ULL << square)) {
+            squares_attacking |= KingAttacksBB(g, square);
+        } else if (g->pieces_bb[iQUEEN] & (1ULL << square)) {
+            squares_attacking |= QueenAttacksBB(g, square);
+        } else if (g->pieces_bb[iROOK] & (1ULL << square)) {
+            squares_attacking |= RookAttacksBB(g, square);
+        } else if (g->pieces_bb[iBISHOP] & (1ULL << square)) {
+            squares_attacking |= BishopAttacksBB(g, square);
+        } else if (g->pieces_bb[iKNIGHT] & (1ULL << square)) {
+            squares_attacking |= KnightAttacksBB(g, square);
+        } else if (g->pieces_bb[iPAWN] & (1ULL << square)) {
+            squares_attacking |= PawnAttacksBB(g, square);
         }
+        pieces ^= 1ULL << square;
     }
 
-    return false;
+    return squares_attacking;
+}
+
+bool InCheck(struct Game* g) {
+    uint64_t king_bb = g->pieces_bb[iKING] & ((g->pieces_bb[iSTATE] & gameStateTurnMask) ? g->pieces_bb[iBLACK] : g->pieces_bb[iWHITE]);
+    uint64_t squares_attacking = allSquaresAttacking(g);
+    return squares_attacking & king_bb;
 }
 
 struct MoveList LegalMoves(struct Game* g) {

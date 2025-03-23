@@ -4,7 +4,9 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}"
+                "$workspaceFolder}",
+                "${workspaceFolder}/v0.01/**",
+                "${workspaceFolder}/v0.01"
             ],
             "intelliSenseMode": "gcc-x64",
             "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
