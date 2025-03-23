@@ -16,7 +16,7 @@ int main() {
 	struct Game g;
 	GameLoadFen(&g, startingPositionFen);
 
-	uint64_t perft_moves = perft(&g, 6);
+	uint64_t perft_moves = perft(&g, 5);
 	printf("%llu\n", perft_moves);
 
 	GameDelete(&g);

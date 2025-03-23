@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/version1/**",
+                "${workspaceFolder}/version1",
+                "${workspaceFolder}/version2/**",
+                "${workspaceFolder}/version2/**"
+            ],
+            "intelliSenseMode": "gcc-x64",
+            "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
