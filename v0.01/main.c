@@ -4,6 +4,7 @@
 #include "board.h"
 #include "moves.h"
 #include "settings.h"
+#include "best_move.h"
 
 int main() {
 	clock_t start, end;
@@ -16,8 +17,7 @@ int main() {
 	struct Game g;
 	GameLoadFen(&g, startingPositionFen);
 
-	uint64_t perft_moves = perft(&g, 5);
-	printf("%llu\n", perft_moves);
+	printf("%s\n", ConvertMoveToStringMove(bestMove(&g, 8)));
 
 	GameDelete(&g);
 
