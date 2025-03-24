@@ -17,7 +17,9 @@ int main() {
 	struct Game g;
 	GameLoadFen(&g, startingPositionFen);
 
-	printf("%s\n", ConvertMoveToStringMove(bestMove(&g, 8)));
+	uint64_t perft_result = perft(&g, 6);
+
+	printf("%llu\n", perft_result);
 
 	GameDelete(&g);
 

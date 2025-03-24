@@ -492,9 +492,23 @@ uint64_t allSquaresAttacking(struct Game* g) {
 }
 
 bool InCheck(struct Game* g) {
-    uint64_t king_bb = g->pieces_bb[iKING] & ((g->pieces_bb[iSTATE] & gameStateTurnMask) ? g->pieces_bb[iBLACK] : g->pieces_bb[iWHITE]);
-    uint64_t squares_attacking = allSquaresAttacking(g);
-    return squares_attacking & king_bb;
+    if (g->pieces_bb[iSTATE] & gameStateTurnMask) {
+        uint8_t king_square = __builtin_ffsll(g->pieces_bb[iBLACK] & g->pieces_bb[iKING]) - 1;
+        if (BishopAttacksBB(g, king_square) & (g->pieces_bb[iWHITE] & (g->pieces_bb[iBISHOP] | g->pieces_bb[iQUEEN]))) return true;
+        if (KnightAttacksBB(g, king_square) & (g->pieces_bb[iWHITE] & g->pieces_bb[iKNIGHT])) return true;
+        if (RookAttacksBB(g, king_square) & (g->pieces_bb[iWHITE] & (g->pieces_bb[iROOK] | g->pieces_bb[iQUEEN]))) return true;
+        if (PawnAttacksBB(g, king_square) & (g->pieces_bb[iWHITE] & g->pieces_bb[iPAWN])) return true;
+        if (KingAttacksBB(g, king_square) & (g->pieces_bb[iWHITE] & g->pieces_bb[iKING])) return true;
+        return false;
+    } else {
+        uint8_t king_square = __builtin_ffsll(g->pieces_bb[iWHITE] & g->pieces_bb[iKING]) - 1;
+        if (BishopAttacksBB(g, king_square) & (g->pieces_bb[iBLACK] & (g->pieces_bb[iBISHOP] | g->pieces_bb[iQUEEN]))) return true;
+        if (KnightAttacksBB(g, king_square) & (g->pieces_bb[iBLACK] & g->pieces_bb[iKNIGHT])) return true;
+        if (RookAttacksBB(g, king_square) & (g->pieces_bb[iBLACK] & (g->pieces_bb[iROOK] | g->pieces_bb[iQUEEN]))) return true;
+        if (PawnAttacksBB(g, king_square) & (g->pieces_bb[iBLACK] & g->pieces_bb[iPAWN])) return true;
+        if (KingAttacksBB(g, king_square) & (g->pieces_bb[iBLACK] & g->pieces_bb[iKING])) return true;
+        return false;
+    }
 }
 
 struct MoveList LegalMoves(struct Game* g) {
@@ -502,69 +516,26 @@ struct MoveList LegalMoves(struct Game* g) {
     legal_moves.num_moves = 0;
     legal_moves.moves = (uint16_t*)malloc(0);
 
+    g->pieces_bb[iSTATE] ^= gameStateTurnMask;
+    uint64_t squares_attacked = allSquaresAttacking(g);
+    g->pieces_bb[iSTATE] ^= gameStateTurnMask;
+
     struct MoveList pseudo_legal_moves = PseudoLegalMoves(g);
     for (int m = 0; m < pseudo_legal_moves.num_moves; m++) {
         if ((pseudo_legal_moves.moves[m] & moveFlagMask) >> 12 == castlingMoveFlag) {
             switch ((pseudo_legal_moves.moves[m] & moveEndSquareMask) >> 6) {
                 case 6:
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e1f1", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e1g1", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
+                    if (!(squares_attacked & 0x70)) AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
                     break;
                 case 2:
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e1d1", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e1c1", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
+                    if (!(squares_attacked & 0x1C)) AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
                     AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
                     break;
                 case 62:
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e8f8", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e8g8", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
+                    if (!(squares_attacked & 0x7000000000000000)) AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
                     break;
                 case 58:
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e8d8", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    GameMakeMove(g, ConvertMoveStringFlagToMove("e8c8", noMoveFlag));
-                    if (InCheck(g)) {
-                        GameUnmakeMove(g);
-                        break;
-                    }
-                    GameUnmakeMove(g);
-                    AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
+                    if (!(squares_attacked & 0x1C00000000000000)) AddMoveToMoveList(&legal_moves, pseudo_legal_moves.moves[m]);
                     break;
             }
         } else {
