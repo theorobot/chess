@@ -74,6 +74,10 @@ void AddMoveToMoveList(struct MoveList* list, uint16_t move) {
     list->num_moves++;
 }
 
+void FreeMoveList(struct MoveList* list) {
+    free(list->moves);
+}
+
 uint64_t KingMovesBB(struct Game* g, uint8_t square) {
     return kingMovesBySquareBB[square] & ~(g->pieces_bb[iWHITE] & (1ULL << square) ? g->pieces_bb[iWHITE] : g->pieces_bb[iBLACK]);
 }
@@ -464,6 +468,13 @@ struct MoveList PseudoLegalMoves(struct Game* g) {
     move_list.moves = (uint16_t*)realloc(move_list.moves, 2 * move_list.num_moves);
     memcpy(&move_list.moves[move_list.num_moves - pawn_moves.num_moves], pawn_moves.moves, 2 * pawn_moves.num_moves);
 
+    FreeMoveList(&king_moves);
+    FreeMoveList(&queen_moves);
+    FreeMoveList(&rook_moves);
+    FreeMoveList(&bishop_moves);
+    FreeMoveList(&knight_moves);
+    FreeMoveList(&pawn_moves);
+
     return move_list;
 }
 
@@ -547,12 +558,15 @@ struct MoveList LegalMoves(struct Game* g) {
         }
     }
 
+    FreeMoveList(&pseudo_legal_moves);
+
     return legal_moves;
 }
 
 uint64_t perft(struct Game* g, int depth) {
     if (depth == 1) {
         struct MoveList moves = LegalMoves(g);
+        FreeMoveList(&moves);
         return moves.num_moves;
     } else {
         uint64_t n_moves = 0ULL;
@@ -562,6 +576,8 @@ uint64_t perft(struct Game* g, int depth) {
             n_moves += perft(g, depth - 1);
             GameUnmakeMove(g);
         }
+
+        FreeMoveList(&moves);
 
         return n_moves;
     }

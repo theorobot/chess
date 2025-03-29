@@ -19,7 +19,7 @@ int main() {
 
 	uint64_t perft_result = perft(&g, 6);
 
-	printf("%llu\n", perft_result);
+	printf("%lu\n", perft_result);
 
 	GameDelete(&g);
 

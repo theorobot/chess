@@ -289,14 +289,14 @@ void GameLoadFen(struct Game* g, char* fen) {
 }
 
 void GamePrintDetails(struct Game* g) {
-	printf("WHITE:    %llu\n", g->pieces_bb[iWHITE]);
-	printf("BLACK:    %llu\n", g->pieces_bb[iBLACK]);
-	printf("KING:     %llu\n", g->pieces_bb[iKING]);
-	printf("QUEEN:    %llu\n", g->pieces_bb[iQUEEN]);
-	printf("ROOK:     %llu\n", g->pieces_bb[iROOK]);
-	printf("BISHOP:   %llu\n", g->pieces_bb[iBISHOP]);
-	printf("KNIGHT:   %llu\n", g->pieces_bb[iKNIGHT]);
-	printf("PAWN:     %llu\n", g->pieces_bb[iPAWN]);
+	printf("WHITE:    %lu\n", g->pieces_bb[iWHITE]);
+	printf("BLACK:    %lu\n", g->pieces_bb[iBLACK]);
+	printf("KING:     %lu\n", g->pieces_bb[iKING]);
+	printf("QUEEN:    %lu\n", g->pieces_bb[iQUEEN]);
+	printf("ROOK:     %lu\n", g->pieces_bb[iROOK]);
+	printf("BISHOP:   %lu\n", g->pieces_bb[iBISHOP]);
+	printf("KNIGHT:   %lu\n", g->pieces_bb[iKNIGHT]);
+	printf("PAWN:     %lu\n", g->pieces_bb[iPAWN]);
 	printf("TURN:     %llu\n", g->pieces_bb[iSTATE] & gameStateTurnMask);
 	printf("WHITE KINGSIDE:  %llu\n", (g->pieces_bb[iSTATE] & gameStateWhiteKingsideCastlingMask) >> 1);
 	printf("WHITE QUEENSIDE: %llu\n", (g->pieces_bb[iSTATE] & gameStateWhiteQueensideCastlingMask) >> 2);
